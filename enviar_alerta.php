@@ -22,7 +22,7 @@ foreach ($impresoras as $impresora) {
         $porcentaje = $cartucho['porcentaje'];
         $nombreCartucho = $modelos[$index] ?? $cartucho['cartucho'];
 
-        // Excluir cartuchos sin nombre explícito o que contengan la palabra 'desconocido'
+        // Excluir cartuchos sin nombre explícito 5o que contengan la palabra 'desconocido'
         if (empty($nombreCartucho) || stripos($nombreCartucho, 'unidad de recogi') !== false) {
             continue;
         }
