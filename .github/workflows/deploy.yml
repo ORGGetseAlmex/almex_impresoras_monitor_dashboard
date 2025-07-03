@@ -1,0 +1,60 @@
+# -----------------------------------------
+# 📦 .github/workflows/deploy.yml
+# ⚙️ Script: Pipeline de despliegue de página web en PHP con Composer y Apache
+# 🙍 Autor: Bryan Daniel
+# 📅 Fecha: 2025-07-03
+# -----------------------------------------
+name: Despliegue por etapas
+ 
+on:
+  push:
+    branches: [ "main","dev" ]
+ 
+jobs:
+  deploy:
+    name: 🚚 Stage 1 - Despliegue de archivos
+    runs-on: self-hosted
+ 
+    outputs:
+      repo_name: ${{ steps.setvars.outputs.repo_name }}
+      branch_name: ${{ steps.setvars.outputs.branch_name }}
+ 
+    steps:
+      - name: 🧩 Checkout del repositorio
+        uses: actions/checkout@v3
+ 
+      - name: 🛠️ Obtener nombre del repo y branch
+        id: setvars
+        run: |
+          echo "repo_name=${GITHUB_REPOSITORY##*/}" >> "$GITHUB_OUTPUT"
+          echo "branch_name=${GITHUB_REF##*/}" >> "$GITHUB_OUTPUT"
+ 
+      - name: 🔑 Ajustar permisos antes de copiar
+        run: |
+          TARGET_DIR="/var/www/${{ steps.setvars.outputs.repo_name }}_${{ steps.setvars.outputs.branch_name }}"
+          echo "Preparando permisos para $TARGET_DIR"
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S mkdir -p "$TARGET_DIR"
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S chown -R github-action:github-action "$TARGET_DIR"
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S chmod -R 755 "$TARGET_DIR"
+ 
+      - name: 📁 Desplegar a carpeta dinámica
+        run: |
+          TARGET_DIR="/var/www/${{ steps.setvars.outputs.repo_name }}_${{ steps.setvars.outputs.branch_name }}"
+          rsync -av --delete --exclude='.git' ./ "$TARGET_DIR/"
+ 
+  composer:
+    name: 📦 Stage 2 - Instalar dependencias Composer
+    runs-on: self-hosted
+    needs: deploy
+ 
+    steps:
+      - name: Instalar Composer si aplica
+        run: |
+          TARGET_DIR="/var/www/${{ needs.deploy.outputs.repo_name }}_${{ needs.deploy.outputs.branch_name }}"
+          if [ -f "$TARGET_DIR/composer.json" ]; then
+            echo "📦 Ejecutando Composer en $TARGET_DIR"
+            cd "$TARGET_DIR"
+            sudo -u github-action composer install --no-interaction --prefer-dist --no-dev
+          else
+            echo "⚠️ No se encontró composer.json"
+          fi
