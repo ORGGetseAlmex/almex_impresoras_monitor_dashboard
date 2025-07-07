@@ -64,9 +64,9 @@ if (!empty($alertas) || !empty($impresorasNoRespondieron)) {
 
         $mail->setFrom('alertas@almidones.com.mx', 'Monitor de Impresoras');
         $mail->addAddress('bryan.alvarado@almidones.com.mx');
-       // $mail->addCC('santiago.rodriguez@almidones.com.mx');
-        //$mail->addCC('jose.campa@almidones.com.mx');
-       // $mail->addCC('gustavo.valencia@almidones.com.mx');
+        $mail->addCC('santiago.rodriguez@almidones.com.mx');
+        $mail->addCC('jose.campa@almidones.com.mx');
+        $mail->addCC('gustavo.valencia@almidones.com.mx');
 
         $html = '
         <div style="font-family: Arial, sans-serif; background-color: #ffffff; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
