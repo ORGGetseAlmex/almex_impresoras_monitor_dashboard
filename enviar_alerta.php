@@ -11,34 +11,43 @@ include 'funciones.php';
 
 $impresoras = json_decode(file_get_contents("impresoras.json"), true);
 $alertas = [];
+$impresorasNoRespondieron = [];
 
 foreach ($impresoras as $impresora) {
-    $datos = obtenerNivelToner($impresora['ip']);
-    if (!$datos) continue;
-
-    $modelos = $impresora['cartuchos'];
-
-    foreach ($datos as $index => $cartucho) {
-        $porcentaje = $cartucho['porcentaje'];
-        $nombreCartucho = $modelos[$index] ?? $cartucho['cartucho'];
-
-        // Excluir cartuchos sin nombre explícito 5o que contengan la palabra 'desconocido'
-        if (empty($nombreCartucho) || stripos($nombreCartucho, 'unidad de recogi') !== false) {
+    try {
+        $datos = obtenerNivelToner($impresora['ip']);
+        if (!$datos) {
+            $impresorasNoRespondieron[] = $impresora['nombre'] . " ({$impresora['ip']})";
             continue;
         }
 
-        if ($porcentaje <= 10) {
-            $alertas[] = [
-                'impresora' => $impresora['nombre'],
-                'modelo'    => $nombreCartucho,
-                'porcentaje'=> $porcentaje
-            ];
+        $modelos = $impresora['cartuchos'];
+
+        foreach ($datos as $index => $cartucho) {
+            $porcentaje = $cartucho['porcentaje'];
+            $nombreCartucho = $modelos[$index] ?? $cartucho['cartucho'];
+
+            // Excluir cartuchos sin nombre explícito o con palabras clave
+            if (empty($nombreCartucho) || stripos($nombreCartucho, 'unidad de recogi') !== false) {
+                continue;
+            }
+
+            if ($porcentaje <= 10) {
+                $alertas[] = [
+                    'impresora' => $impresora['nombre'],
+                    'modelo'    => $nombreCartucho,
+                    'porcentaje'=> $porcentaje
+                ];
+            }
         }
+
+    } catch (Exception $e) {
+        $impresorasNoRespondieron[] = $impresora['nombre'] . " ({$impresora['ip']})";
+        continue;
     }
 }
 
-if (!empty($alertas)) {
-    // Crear instancia de PHPMailer
+if (!empty($alertas) || !empty($impresorasNoRespondieron)) {
     $mail = new PHPMailer(true);
     try {
         // Configuración SMTP
@@ -55,19 +64,21 @@ if (!empty($alertas)) {
 
         $mail->setFrom('alertas@almidones.com.mx', 'Monitor de Impresoras');
         $mail->addAddress('bryan.alvarado@almidones.com.mx');
-        $mail->addCC('santiago.rodriguez@almidones.com.mx');
-        $mail->addCC('jose.campa@almidones.com.mx');
-        $mail->addCC('gustavo.valencia@almidones.com.mx');
+       // $mail->addCC('santiago.rodriguez@almidones.com.mx');
+        //$mail->addCC('jose.campa@almidones.com.mx');
+       // $mail->addCC('gustavo.valencia@almidones.com.mx');
 
         $html = '
         <div style="font-family: Arial, sans-serif; background-color: #ffffff; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
             <div style="text-align: center; margin-bottom: 20px;">
                 <img src="cid:almexLogo" alt="ALMEX Logo" style="width: 150px;"/>
                 <h2 style="color: #2a2a2a; margin-top: 10px;">Monitor de Impresoras</h2>
-                <p style="font-size: 14px; color: #666;">Reporte automatico de niveles de toner - ' . date("Y-m-d") . '</p>
-            </div>
+                <p style="font-size: 14px; color: #666;">Reporte automático de niveles de tóner - ' . date("Y-m-d") . '</p>
+            </div>';
 
-            <h3 style="color: #d32f2f; margin-bottom: 10px;">Toner bajo detectado</h3>
+        if (!empty($alertas)) {
+            $html .= '
+            <h3 style="color: #d32f2f; margin-bottom: 10px;">Tóner bajo detectado</h3>
             <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
                 <thead>
                     <tr style="background-color: #f5f5f5;">
@@ -77,20 +88,45 @@ if (!empty($alertas)) {
                     </tr>
                 </thead>
                 <tbody>';
-
-        foreach ($alertas as $a) {
-            $html .= '
+            
+            foreach ($alertas as $a) {
+                $html .= '
                     <tr>
                         <td style="border: 1px solid #ddd; padding: 8px;">' . $a['impresora'] . '</td>
                         <td style="border: 1px solid #ddd; padding: 8px;">' . $a['modelo'] . '</td>
                         <td style="border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold; color: #d32f2f;">' . $a['porcentaje'] . '%</td>
                     </tr>';
+            }
+
+            $html .= '
+                </tbody>
+            </table>';
+        }
+
+        if (!empty($impresorasNoRespondieron)) {
+            $html .= '
+            <h3 style="color: #ff9800; margin-top: 30px;">Impresoras que no respondieron</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                <thead>
+                    <tr style="background-color: #f5f5f5;">
+                        <th style="border: 1px solid #ccc; padding: 8px;">Nombre / IP</th>
+                    </tr>
+                </thead>
+                <tbody>';
+
+            foreach ($impresorasNoRespondieron as $impresoraNR) {
+                $html .= '
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px; color: #f57c00;">' . $impresoraNR . '</td>
+                    </tr>';
+            }
+
+            $html .= '
+                </tbody>
+            </table>';
         }
 
         $html .= '
-                </tbody>
-            </table>
-
             <div style="margin-top: 25px; font-size: 12px; color: #888; text-align: center;">
                 Este es un mensaje automático del sistema de monitoreo de impresoras de ALMEX.<br/>
             </div>
@@ -108,6 +144,6 @@ if (!empty($alertas)) {
         echo "Error al enviar correo: {$mail->ErrorInfo}";
     }
 } else {
-    echo "No hay cartuchos por debajo del 10% hoy.";
+    echo "No hay cartuchos por debajo del 10% hoy y todas las impresoras respondieron correctamente.";
 }
 ?>
