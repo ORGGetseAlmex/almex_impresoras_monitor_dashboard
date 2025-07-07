@@ -73,7 +73,7 @@ if (!empty($alertas) || !empty($impresorasNoRespondieron)) {
             <div style="text-align: center; margin-bottom: 20px;">
                 <img src="cid:almexLogo" alt="ALMEX Logo" style="width: 150px;"/>
                 <h2 style="color: #2a2a2a; margin-top: 10px;">Monitor de Impresoras</h2>
-                <p style="font-size: 14px; color: #666;">Reporte automático de niveles de toner - ' . date("Y-m-d") . '</p>
+                <p style="font-size: 14px; color: #666;">Reporte automatico de niveles de toner - ' . date("Y-m-d") . '</p>
             </div>';
 
         if (!empty($alertas)) {
