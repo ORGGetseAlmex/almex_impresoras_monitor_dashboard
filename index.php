@@ -150,22 +150,21 @@ $impresoras = json_decode(file_get_contents("impresoras.json"), true);
         padding: 15px;
       }
     }
-    body::before {
-        content: "";
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-image: url('fondo-almex.jpg');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        opacity: 0.40; 
-        z-index: -1;
-         
-        }
 
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('fondo-almex.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: 0.40;
+      z-index: -1;
+    }
   </style>
 
   <script>
@@ -207,11 +206,11 @@ $impresoras = json_decode(file_get_contents("impresoras.json"), true);
           $datos = obtenerNivelToner($impresora['ip']);
           $modelos = $impresora['cartuchos'];
           $esColor = $impresora['color'] ?? true;
-          $limite = $esColor ? count($datos) : count($modelos);
         ?>
         <?php if (!$datos): ?>
           <p style="color:red;">❌ No se pudo obtener información de la impresora.</p>
         <?php else: ?>
+          <?php $limite = $esColor ? count($datos) : count($modelos); ?>
           <table>
             <tr>
               <th>Cartucho</th>
