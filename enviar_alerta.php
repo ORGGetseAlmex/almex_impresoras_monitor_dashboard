@@ -27,7 +27,7 @@ foreach ($impresoras as $impresora) {
             $porcentaje = $cartucho['porcentaje'];
             $nombreCartucho = $modelos[$index] ?? $cartucho['cartucho'];
 
-            // Excluir cartuchos sin nombre explícito o con palabras clave
+            
             if (empty($nombreCartucho) || stripos($nombreCartucho, 'unidad de recogi') !== false) {
                 continue;
             }
@@ -59,7 +59,7 @@ if (!empty($alertas) || !empty($impresorasNoRespondieron)) {
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
 
-        $logoPath = 'logo-almex.png'; 
+        $logoPath = 'logo-almex2.png'; 
         $mail->addEmbeddedImage($logoPath, 'almexLogo');
 
         $mail->setFrom('alertas@almidones.com.mx', 'Monitor de Impresoras');
@@ -73,12 +73,12 @@ if (!empty($alertas) || !empty($impresorasNoRespondieron)) {
             <div style="text-align: center; margin-bottom: 20px;">
                 <img src="cid:almexLogo" alt="ALMEX Logo" style="width: 150px;"/>
                 <h2 style="color: #2a2a2a; margin-top: 10px;">Monitor de Impresoras</h2>
-                <p style="font-size: 14px; color: #666;">Reporte automático de niveles de tóner - ' . date("Y-m-d") . '</p>
+                <p style="font-size: 14px; color: #666;">Reporte automático de niveles de toner - ' . date("Y-m-d") . '</p>
             </div>';
 
         if (!empty($alertas)) {
             $html .= '
-            <h3 style="color: #d32f2f; margin-bottom: 10px;">Tóner bajo detectado</h3>
+            <h3 style="color: #d32f2f; margin-bottom: 10px;">Toner bajo detectado</h3>
             <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
                 <thead>
                     <tr style="background-color: #f5f5f5;">
@@ -132,12 +132,12 @@ if (!empty($alertas) || !empty($impresorasNoRespondieron)) {
             </div>
         </div>';
 
-        // Configurar correo
+        
         $mail->isHTML(true);
         $mail->Subject = 'Alerta de toner bajo en impresoras';
         $mail->Body    = $html;
 
-        // Enviar
+        
         $mail->send();
         echo "Correo enviado correctamente.";
     } catch (Exception $e) {
