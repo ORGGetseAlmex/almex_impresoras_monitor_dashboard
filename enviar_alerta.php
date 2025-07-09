@@ -9,7 +9,7 @@ require 'PHPMailer/src/Exception.php';
 
 include 'funciones.php';
 
-$impresoras = json_decode(file_get_contents("impresoras.json"), true);
+$impresoras = json_decode(file_get_contents(__DIR__ . "/impresoras.json"), true);
 $alertas = [];
 $impresorasNoRespondieron = [];
 
