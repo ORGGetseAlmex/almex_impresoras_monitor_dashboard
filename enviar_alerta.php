@@ -59,7 +59,7 @@ if (!empty($alertas) || !empty($impresorasNoRespondieron)) {
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
 
-        $logoPath = 'logo-almex2.png'; 
+        $logoPath = '/logo-almex2.png'; 
         $mail->addEmbeddedImage(__DIR__.$logoPath, 'almexLogo');
 
         $mail->setFrom('alertas@almidones.com.mx', 'Monitor de Impresoras');
