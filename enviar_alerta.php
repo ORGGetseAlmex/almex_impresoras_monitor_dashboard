@@ -140,10 +140,13 @@ if (!empty($alertas) || !empty($impresorasNoRespondieron)) {
         
         $mail->send();
         echo "Correo enviado correctamente.";
+        exit(0);
     } catch (Exception $e) {
         echo "Error al enviar correo: {$mail->ErrorInfo}";
+        exit(1);
     }
 } else {
     echo "No hay cartuchos por debajo del 10% hoy y todas las impresoras respondieron correctamente.";
+    exit(0);
 }
 ?>
