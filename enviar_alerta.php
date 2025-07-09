@@ -60,7 +60,7 @@ if (!empty($alertas) || !empty($impresorasNoRespondieron)) {
         $mail->Port = 587;
 
         $logoPath = 'logo-almex2.png'; 
-        $mail->addEmbeddedImage($logoPath, 'almexLogo');
+        $mail->addEmbeddedImage(__DIR__.$logoPath, 'almexLogo');
 
         $mail->setFrom('alertas@almidones.com.mx', 'Monitor de Impresoras');
         $mail->addAddress('bryan.alvarado@almidones.com.mx');
